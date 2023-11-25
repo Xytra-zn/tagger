@@ -32,11 +32,12 @@
     }
   },
   "addons": [
-    {
-      "plan": "mongodbatlas",
-      "options": {
-        "creds": "MONGODB_URL"
-      }
+  {
+    "plan": "mongodb",
+    "options": {
+      "version": "4.4",
+      "storage": "1GB",
+      "creds": "MONGODB_URL"
     }
-  ]
-}
+  }
+]
