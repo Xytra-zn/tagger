@@ -1,15 +1,7 @@
 import os
-import asyncio
 from pymongo import MongoClient
-from admins import refresh_admins  # Import the function
 
-# MongoDB connection
-mongo_client = MongoClient(os.getenv("MONGODB_URL"))
-db = mongo_client.get_database()
-admins_collection = db["admins"]
-
-# Initialize the Telethon client (removed since we're not using Telethon)
-# Your existing event handlers and bot functionality
+# MongoDB connection (removed since we're not using it)
 
 # Track ongoing tagging processes by chat_id
 spam_chats = []
@@ -27,17 +19,21 @@ async def mention_all(event):
     if not event.pattern_match.group(1) and not event.is_reply:
         return await event.respond("Please provide at least one argument (either reply to a message or add a message after the command).")
 
+    # Check if the bot is an admin
+    if not await client.is_bot_admin(chat_id):
+        return await event.respond("I need to be an admin to run this command.")
+
+    # Check if the user is an admin
+    if not await client.is_user_admin(chat_id, event.sender_id):
+        return await event.respond("You need to be an admin to run this command.")
+
     # Add the chat to the list of ongoing tagging processes
     spam_chats.append(chat_id)
 
-    # Tag all participants in the chat using admin list from MongoDB
-    admin_data = admins_collection.find_one({"chat_id": chat_id})
-    admin_ids = admin_data.get("admin_ids", []) if admin_data else []
-    
+    # Tag all participants in the chat
     async for user in client.iter_participants(chat_id):
-        if user.id in admin_ids:
-            username = f"@{user.username}" if user.username else user.first_name
-            await event.respond(f"Tagging {username}!")
+        username = f"@{user.username}" if user.username else user.first_name
+        await event.respond(f"Tagging {username}!")
 
     # Remove the chat from the list after tagging is complete
     try:
@@ -58,16 +54,9 @@ async def cancel_spam(event):
     else:
         return await event.respond("No ongoing tagging process to stop.")
 
-# Example event handling for refreshing admin list
-@client.on(events.NewMessage(pattern="^/reload$"))
-async def reload_admins(event):
-    chat_id = event.chat_id
-
-    # Check if the user triggering the command is an admin
-    is_admin = await refresh_admins(client, chat_id)
-    if not is_admin:
-        return await event.respond("Only admins can execute this command.")
-
-    return await event.respond("Admin list refreshed.")
-
-# Run the bot (removed since we're not using Telethon)
+# Run the bot
+try:
+    client.start()
+    client.run_until_disconnected()
+finally:
+    # Close MongoDB client connection (removed since we're not using it)
