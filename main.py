@@ -1,14 +1,14 @@
 import os
 import asyncio
-from pymongo import MongoClient
 from telethon.sync import TelegramClient, events
 from telethon.tl.types import ChannelParticipantAdmin, ChannelParticipantCreator
 from telethon.errors import UserNotParticipantError
 from telethon.tl.functions.channels import GetParticipantRequest
+from admins import refresh_admins  # Import the function
 
 # MongoDB connection
 mongo_client = MongoClient(os.getenv("MONGODB_URL"))
-db = mongo_client.get_database()  # This gets the default database
+db = mongo_client.get_database()
 admins_collection = db["admins"]
 
 # Initialize the Telethon client
@@ -17,15 +17,6 @@ client = TelegramClient(StringSession(os.getenv('TELETHON_SESSION')),
 
 # Track ongoing tagging processes by chat_id
 spam_chats = []
-
-# Example event handling for tagging users
-@client.on(events.NewMessage(pattern="^/(tagall|utag|@all|#all)"))
-async def mention_all(event):
-    chat_id = event.chat_id
-
-    # Check if the chat is already in the process of tagging
-    if chat_id in spam_chats:
-        return await event.respond("Tagging is already in progress. Use /cancel to stop.")
 
 # Example event handling for tagging users
 @client.on(events.NewMessage(pattern="^/(tagall|utag|@all|#all)"))
@@ -73,16 +64,9 @@ async def reload_admins(event):
     chat_id = event.chat_id
 
     # Check if the user triggering the command is an admin
-    try:
-        participant = await client(GetParticipantRequest(chat_id, event.sender_id))
-        if not isinstance(participant.participant, (ChannelParticipantAdmin, ChannelParticipantCreator)):
-            return await event.respond("Only admins can execute this command.")
-    except UserNotParticipantError:
-        return await event.respond("You are not a participant in this group.")
-
-    # Fetch the current admins and store in MongoDB
-    current_admins = [participant.id for participant in await client.get_participants(chat_id, filter=ChannelParticipantAdmin)]
-    admins_collection.replace_one({"chat_id": chat_id}, {"chat_id": chat_id, "admins": current_admins}, upsert=True)
+    is_admin = await refresh_admins(client, chat_id)
+    if not is_admin:
+        return await event.respond("Only admins can execute this command.")
 
     return await event.respond("Admin list refreshed.")
 
@@ -91,5 +75,3 @@ async def reload_admins(event):
 # Run the bot
 client.start()
 client.run_until_disconnected()
-
-
