@@ -11,7 +11,11 @@
         "version": "12"
       },
       "plan": "heroku-postgresql"
+    },
+    {
+      "plan": "mongolab:sandbox"
     }
+    // Add any other necessary addons here
   ],
   "env": {
     "TELEGRAM_API_ID": {
@@ -29,11 +33,31 @@
       "required": true,
       "value": ""
     },
-    "TELETHON_SESSION": {
-      "description": "Your Telethon session string",
+    "MONGODB_URL": {
+      "description": "Your MongoDB connection URL",
+      "required": true,
+      "value": ""
+    },
+    "API_ID": {
+      "description": "Your Telegram API ID",
+      "required": true,
+      "value": ""
+    },
+    "API_HASH": {
+      "description": "Your Telegram API hash",
+      "required": true,
+      "value": ""
+    },
+    "PHONE": {
+      "description": "Your Telegram account phone number",
+      "required": true,
+      "value": ""
+    },
+    "CODE": {
+      "description": "Your Telegram authentication code",
       "required": true,
       "value": ""
     }
+    // Add any other environment variables here
   }
 }
-
