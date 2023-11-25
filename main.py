@@ -1,56 +1,52 @@
 import os
 import asyncio
+from pymongo import MongoClient
 from telethon.sync import TelegramClient, events
-from telethon.sessions import StringSession
-from telethon.tl.functions.channels import GetParticipantRequest
 from telethon.tl.types import ChannelParticipantAdmin, ChannelParticipantCreator
+from telethon.errors import UserNotParticipantError
+from telethon.tl.functions.channels import GetParticipantRequest
 
-# Replace these with your actual environment variable names
-API_ID = int(os.getenv('TELEGRAM_API_ID'))
-API_HASH = os.getenv('TELEGRAM_API_HASH')
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-TELETHON_SESSION = os.getenv('TELETHON_SESSION')
-
-# Check if required environment variables are provided
-if not (API_ID and API_HASH and BOT_TOKEN and TELETHON_SESSION):
-    raise ValueError("TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_BOT_TOKEN, and TELETHON_SESSION are required.")
+# MongoDB connection
+mongo_client = MongoClient(os.getenv("MONGODB_URL"))
+db = mongo_client.get_database()  # This gets the default database
+admins_collection = db["admins"]
 
 # Initialize the Telethon client
-client = TelegramClient(StringSession(TELETHON_SESSION), API_ID, API_HASH)
+client = TelegramClient(StringSession(os.getenv('TELETHON_SESSION')),
+                        os.getenv('TELEGRAM_API_ID'), os.getenv('TELEGRAM_API_HASH'))
 
 # Track ongoing tagging processes by chat_id
 spam_chats = []
 
-@client.on(events.NewMessage(pattern="^/tagall"))
-@client.on(events.NewMessage(pattern="^@all"))
-@client.on(events.NewMessage(pattern="^#all"))
-async def tag_all(event):
+# Example event handling for tagging users
+@client.on(events.NewMessage(pattern="^/(tagall|utag|@all|#all)"))
+async def mention_all(event):
     chat_id = event.chat_id
 
     # Check if the chat is already in the process of tagging
     if chat_id in spam_chats:
         return await event.respond("Tagging is already in progress. Use /cancel to stop.")
 
+# Example event handling for tagging users
+@client.on(events.NewMessage(pattern="^/(tagall|utag|@all|#all)"))
+async def mention_all(event):
+    chat_id = event.chat_id
+
+    # Check if the chat is already in the process of tagging
+    if chat_id in spam_chats:
+        return await event.respond("Tagging is already in progress. Use /cancel to stop.")
+
+    # Check if at least one argument is given
+    if not event.pattern_match.group(1) and not event.is_reply:
+        return await event.respond("Please provide at least one argument (either reply to a message or add a message after the command).")
+
     # Add the chat to the list of ongoing tagging processes
     spam_chats.append(chat_id)
 
     # Tag all participants in the chat
-    try:
-        admins = await client.get_participants(chat_id, filter=ChannelParticipantAdmin)
-        await event.respond(f"ALL USERS TAGGING PROCESS STARTED... STARTED BY: {event.sender_id} {event.sender.username}")
-
-        async for user in client.iter_participants(chat_id):
-            if user.id == event.sender_id or user.bot:
-                continue
-
-            if user.username:
-                await event.respond(f"@{user.username}")
-            else:
-                await event.respond(user.first_name)
-
-        await event.respond(f"TAGGING PROCESS COMPLETED. TOTAL NUMBER OF USERS TAGGED: {len(admins)}")
-    except Exception as e:
-        await event.respond(f"Error: {str(e)}")
+    async for user in client.iter_participants(chat_id):
+        username = f"@{user.username}" if user.username else user.first_name
+        await event.respond(f"Tagging {username}!")
 
     # Remove the chat from the list after tagging is complete
     try:
@@ -71,8 +67,29 @@ async def cancel_spam(event):
     else:
         return await event.respond("No ongoing tagging process to stop.")
 
-# Add more event handlers and bot functionality as needed
+# Example event handling for refreshing admin list
+@client.on(events.NewMessage(pattern="^/reload$"))
+async def reload_admins(event):
+    chat_id = event.chat_id
+
+    # Check if the user triggering the command is an admin
+    try:
+        participant = await client(GetParticipantRequest(chat_id, event.sender_id))
+        if not isinstance(participant.participant, (ChannelParticipantAdmin, ChannelParticipantCreator)):
+            return await event.respond("Only admins can execute this command.")
+    except UserNotParticipantError:
+        return await event.respond("You are not a participant in this group.")
+
+    # Fetch the current admins and store in MongoDB
+    current_admins = [participant.id for participant in await client.get_participants(chat_id, filter=ChannelParticipantAdmin)]
+    admins_collection.replace_one({"chat_id": chat_id}, {"chat_id": chat_id, "admins": current_admins}, upsert=True)
+
+    return await event.respond("Admin list refreshed.")
+
+# Your existing event handlers and bot functionality
 
 # Run the bot
 client.start()
 client.run_until_disconnected()
+
+
