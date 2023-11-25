@@ -1,20 +1,13 @@
 import os
 from telethon.sync import TelegramClient
-from telethon.sessions import StringSession  # Add this line
-from dotenv import load_dotenv
+from telethon.sessions import StringSession
+from telethon import events
 
-# Load environment variables from a .env file
-load_dotenv()
-
-# Replace these with your actual environment variable names
+# Load environment variables from Heroku Config Vars
 API_ID = int(os.getenv('TELEGRAM_API_ID'))
 API_HASH = os.getenv('TELEGRAM_API_HASH')
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELETHON_SESSION = os.getenv('TELETHON_SESSION')
-
-# Check if required environment variables are provided
-if not (API_ID and API_HASH and BOT_TOKEN and TELETHON_SESSION):
-    raise ValueError("API_ID, API_HASH, TOKEN, and TELETHON_SESSION are required.")
 
 # Initialize the Telethon client
 client = TelegramClient(StringSession(TELETHON_SESSION), API_ID, API_HASH)
