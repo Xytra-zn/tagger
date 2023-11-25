@@ -4,60 +4,40 @@
   "logo": "https://graph.org/file/bae8ca4a24a6902df2e0c.jpg",
   "keywords": ["telegram", "bot", "tagger"],
   "repository": "https://github.com/Xytra-zn/tagger",
-  "stack": "heroku-22",
-  "addons": [
-    {
-      "options": {
-        "version": "12"
-      },
-      "plan": "heroku-postgresql"
-    },
-    {
-      "plan": "mongolab:sandbox"
-    }
-    // Add any other necessary addons here
-  ],
+  "keywords": ["telegram", "bot"],
   "env": {
+    "PYTHONUNBUFFERED": {
+      "description": "Ensure Python is running in unbuffered mode",
+      "required": true,
+      "value": "1"
+    },
     "TELEGRAM_API_ID": {
       "description": "Get this value from my.telegram.org/apps.",
       "required": true,
-      "value": ""
+      "value": "your-telegram-api-id"
     },
     "TELEGRAM_API_HASH": {
       "description": "Get this value from my.telegram.org/apps.",
       "required": true,
-      "value": ""
+      "value": "your-telegram-api-hash"
     },
     "TELEGRAM_BOT_TOKEN": {
-      "description": "Get bot token from @BotFather on TG",
+      "description": "The token of your Telegram bot",
       "required": true,
-      "value": ""
+      "value": "your-bot-token"
     },
     "MONGODB_URL": {
       "description": "Your MongoDB connection URL",
       "required": true,
-      "value": ""
-    },
-    "API_ID": {
-      "description": "Your Telegram API ID",
-      "required": true,
-      "value": ""
-    },
-    "API_HASH": {
-      "description": "Your Telegram API hash",
-      "required": true,
-      "value": ""
-    },
-    "PHONE": {
-      "description": "Your Telegram account phone number",
-      "required": true,
-      "value": ""
-    },
-    "CODE": {
-      "description": "Your Telegram authentication code",
-      "required": true,
-      "value": ""
+      "value": "your-mongodb-url"
     }
-    // Add any other environment variables here
-  }
+  },
+  "addons": [
+    {
+      "plan": "mongolab:sandbox",
+      "options": {
+        "creds": "MONGODB_URL"
+      }
+    }
+  ]
 }
