@@ -14,23 +14,25 @@
   ],
   "env": {
     "TELEGRAM_API_ID": {
-      "description": "Your Telegram API ID (from my.telegram.org/apps)",
-      "required": true
+      "description": "Get this value from my.telegram.org/apps.",
+      "required": true,
+      "value": ""
     },
     "TELEGRAM_API_HASH": {
-      "description": "Your Telegram API Hash (from my.telegram.org/apps)",
-      "required": true
+      "description": "Get this value from my.telegram.org/apps.",
+      "required": true,
+      "value": ""
     },
     "TELEGRAM_BOT_TOKEN": {
-      "description": "Your Telegram Bot Token (from @BotFather)",
-      "required": true
+      "description": "Get bot token from @BotFather on TG",
+      "required": true,
+      "value": ""
     },
     "TELETHON_SESSION": {
-      "description": "Your Telethon Session String",
-      "required": true
+      "description": "Your Telethon session string",
+      "required": true,
+      "value": ""
     }
-  },
-  "scripts": {
-    "postdeploy": "python heroku.py"
   }
 }
+
