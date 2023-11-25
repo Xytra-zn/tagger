@@ -1,8 +1,6 @@
 {
-  "name": "xytra bot",
-  "description": "Telegram User Tagger Bot",
-  "logo": "https://graph.org/file/bae8ca4a24a6902df2e0c.jpg",
-  "keywords": ["telegram", "bot", "tagger"],
+  "name": "XYTRA",
+  "description": "USER TAGGER BY CHAT GPT",
   "repository": "https://github.com/Xytra-zn/tagger",
   "env": {
     "PYTHONUNBUFFERED": {
@@ -32,12 +30,13 @@
     }
   },
   "addons": [
-  {
-    "plan": "mongodb",
-    "options": {
-      "version": "4.4",
-      "storage": "1GB",
-      "creds": "MONGODB_URL"
+    {
+      "plan": "mongodb",
+      "options": {
+        "version": "4.4",
+        "storage": "1GB",
+        "creds": "MONGODB_URL"
+      }
     }
-  }
-]
+  ]
+}
