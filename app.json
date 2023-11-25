@@ -1,6 +1,6 @@
 {
-  "name": "XYTRA TAGGER",
-  "description": "Telegram User Tagger Bot MADE WITH CHAT GPT",
+  "name": "xytra bot",
+  "description": "Telegram User Tagger Bot",
   "keywords": ["telegram", "bot", "tagger"],
   "repository": "https://github.com/Xytra-zn/tagger",
   "stack": "heroku-22",
@@ -29,7 +29,6 @@
       "description": "Your Telethon Session String",
       "required": true
     }
-    // Add more environment variables as needed
   },
   "scripts": {
     "postdeploy": "python heroku.py"
