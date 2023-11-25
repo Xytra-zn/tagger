@@ -2,10 +2,8 @@ import os
 import asyncio
 from telethon.sync import TelegramClient, events
 from telethon.sessions import StringSession
-from dotenv import load_dotenv
-
-# Load environment variables from a .env file
-load_dotenv()
+from telethon.tl.functions.channels import GetParticipantRequest
+from telethon.tl.types import ChannelParticipantAdmin, ChannelParticipantCreator
 
 # Replace these with your actual environment variable names
 API_ID = int(os.getenv('TELEGRAM_API_ID'))
@@ -15,7 +13,7 @@ TELETHON_SESSION = os.getenv('TELETHON_SESSION')
 
 # Check if required environment variables are provided
 if not (API_ID and API_HASH and BOT_TOKEN and TELETHON_SESSION):
-    raise ValueError("API_ID, API_HASH, TOKEN, and TELETHON_SESSION are required.")
+    raise ValueError("TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_BOT_TOKEN, and TELETHON_SESSION are required.")
 
 # Initialize the Telethon client
 client = TelegramClient(StringSession(TELETHON_SESSION), API_ID, API_HASH)
@@ -23,8 +21,9 @@ client = TelegramClient(StringSession(TELETHON_SESSION), API_ID, API_HASH)
 # Track ongoing tagging processes by chat_id
 spam_chats = []
 
-# Example event handling for tagging users
 @client.on(events.NewMessage(pattern="^/tagall"))
+@client.on(events.NewMessage(pattern="^@all"))
+@client.on(events.NewMessage(pattern="^#all"))
 async def tag_all(event):
     chat_id = event.chat_id
 
@@ -36,8 +35,22 @@ async def tag_all(event):
     spam_chats.append(chat_id)
 
     # Tag all participants in the chat
-    async for user in client.iter_participants(chat_id):
-        await event.respond(f"Tagging {user.first_name}!")
+    try:
+        admins = await client.get_participants(chat_id, filter=ChannelParticipantAdmin)
+        await event.respond(f"ALL USERS TAGGING PROCESS STARTED... STARTED BY: {event.sender_id} {event.sender.username}")
+
+        async for user in client.iter_participants(chat_id):
+            if user.id == event.sender_id or user.bot:
+                continue
+
+            if user.username:
+                await event.respond(f"@{user.username}")
+            else:
+                await event.respond(user.first_name)
+
+        await event.respond(f"TAGGING PROCESS COMPLETED. TOTAL NUMBER OF USERS TAGGED: {len(admins)}")
+    except Exception as e:
+        await event.respond(f"Error: {str(e)}")
 
     # Remove the chat from the list after tagging is complete
     try:
