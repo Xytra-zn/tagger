@@ -1,9 +1,5 @@
 import os
 import asyncio
-from telethon.sync import TelegramClient, events
-from telethon.tl.types import ChannelParticipantAdmin, ChannelParticipantCreator
-from telethon.errors import UserNotParticipantError
-from telethon.tl.functions.channels import GetParticipantRequest
 from pymongo import MongoClient
 from admins import refresh_admins  # Import the function
 
@@ -12,9 +8,8 @@ mongo_client = MongoClient(os.getenv("MONGODB_URL"))
 db = mongo_client.get_database()
 admins_collection = db["admins"]
 
-# Initialize the Telethon client
-client = TelegramClient(StringSession(os.getenv('TELETHON_SESSION')),
-                        os.getenv('TELEGRAM_API_ID'), os.getenv('TELEGRAM_API_HASH'))
+# Initialize the Telethon client (removed since we're not using Telethon)
+# Your existing event handlers and bot functionality
 
 # Track ongoing tagging processes by chat_id
 spam_chats = []
@@ -35,10 +30,14 @@ async def mention_all(event):
     # Add the chat to the list of ongoing tagging processes
     spam_chats.append(chat_id)
 
-    # Tag all participants in the chat
+    # Tag all participants in the chat using admin list from MongoDB
+    admin_data = admins_collection.find_one({"chat_id": chat_id})
+    admin_ids = admin_data.get("admin_ids", []) if admin_data else []
+    
     async for user in client.iter_participants(chat_id):
-        username = f"@{user.username}" if user.username else user.first_name
-        await event.respond(f"Tagging {username}!")
+        if user.id in admin_ids:
+            username = f"@{user.username}" if user.username else user.first_name
+            await event.respond(f"Tagging {username}!")
 
     # Remove the chat from the list after tagging is complete
     try:
@@ -71,8 +70,4 @@ async def reload_admins(event):
 
     return await event.respond("Admin list refreshed.")
 
-# Your existing event handlers and bot functionality
-
-# Run the bot
-client.start()
-client.run_until_disconnected()
+# Run the bot (removed since we're not using Telethon)
