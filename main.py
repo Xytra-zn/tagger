@@ -4,6 +4,7 @@ from telethon.sync import TelegramClient, events
 from telethon.tl.types import ChannelParticipantAdmin, ChannelParticipantCreator
 from telethon.errors import UserNotParticipantError
 from telethon.tl.functions.channels import GetParticipantRequest
+from pymongo import MongoClient
 from admins import refresh_admins  # Import the function
 
 # MongoDB connection
