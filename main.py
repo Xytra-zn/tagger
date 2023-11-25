@@ -1,59 +1,65 @@
 import os
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # Track ongoing tagging processes by chat_id
-spam_chats = []
+spam_chats = set()
 
 # Example event handling for tagging users
-@client.on(events.NewMessage(pattern="^/(tagall|utag|@all|#all)"))
-async def mention_all(event):
-    chat_id = event.chat_id
+def mention_all(update, context):
+    chat_id = update.message.chat_id
 
     # Check if the chat is already in the process of tagging
     if chat_id in spam_chats:
-        return await event.respond("Tagging is already in progress. Use /cancel to stop.")
+        update.message.reply_text("Tagging is already in progress. Use /cancel to stop.")
+        return
 
     # Check if at least one argument is given
-    if not event.pattern_match.group(1) and not event.is_reply:
-        return await event.respond("Please provide at least one argument (either reply to a message or add a message after the command).")
+    if not context.args and not update.message.reply_to_message:
+        update.message.reply_text("Please provide at least one argument (either reply to a message or add a message after the command).")
+        return
 
     # Check if the bot is an admin
-    if not await client.is_bot_admin(chat_id):
-        return await event.respond("I need to be an admin to run this command.")
+    if not context.bot.get_chat_member(chat_id, context.bot.id).status in ['administrator', 'creator']:
+        update.message.reply_text("I need to be an admin to run this command.")
+        return
 
     # Check if the user is an admin
-    if not await client.is_user_admin(chat_id, event.sender_id):
-        return await event.respond("You need to be an admin to run this command.")
+    if not context.bot.get_chat_member(chat_id, update.message.from_user.id).status in ['administrator', 'creator']:
+        update.message.reply_text("You need to be an admin to run this command.")
+        return
 
     # Add the chat to the list of ongoing tagging processes
-    spam_chats.append(chat_id)
+    spam_chats.add(chat_id)
 
     # Tag all participants in the chat
-    async for user in client.iter_participants(chat_id):
-        username = f"@{user.username}" if user.username else user.first_name
-        await event.respond(f"Tagging {username}!")
+    for member in context.bot.get_chat(chat_id).get_members():
+        if member.user:
+            username = f"@{member.user.username}" if member.user.username else member.user.first_name
+            update.message.reply_text(f"Tagging {username}!")
 
     # Remove the chat from the list after tagging is complete
-    try:
-        spam_chats.remove(chat_id)
-    except ValueError:
-        pass  # If chat_id is not in the list
+    spam_chats.remove(chat_id)
 
 # Example event handling for canceling tagging process
-@client.on(events.NewMessage(pattern="^/cancel$"))
-async def cancel_spam(event):
-    chat_id = event.chat_id
+def cancel_spam(update, context):
+    chat_id = update.message.chat_id
 
     # Check if the chat is in the list of ongoing tagging processes
     if chat_id in spam_chats:
         # Remove the chat from the list to stop tagging
         spam_chats.remove(chat_id)
-        return await event.respond("Tagging process stopped.")
+        update.message.reply_text("Tagging process stopped.")
     else:
-        return await event.respond("No ongoing tagging process to stop.")
+        update.message.reply_text("No ongoing tagging process to stop.")
 
-# Run the bot (if you have Telethon client setup)
-try:
-    client.start()
-    client.run_until_disconnected()
-finally:
-    pass  # No need to close anything without MongoDB
+# Set up the Telegram bot
+updater = Updater(token=os.getenv("TELEGRAM_TOKEN"), use_context=True)
+dispatcher = updater.dispatcher
+
+# Add handlers
+dispatcher.add_handler(CommandHandler("tagall", mention_all))
+dispatcher.add_handler(CommandHandler("cancel", cancel_spam))
+
+# Start the bot
+updater.start_polling()
+updater.idle()
