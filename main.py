@@ -1,7 +1,4 @@
 import os
-from pymongo import MongoClient
-
-# MongoDB connection (removed since we're not using it)
 
 # Track ongoing tagging processes by chat_id
 spam_chats = []
@@ -54,9 +51,9 @@ async def cancel_spam(event):
     else:
         return await event.respond("No ongoing tagging process to stop.")
 
-# Run the bot
+# Run the bot (if you have Telethon client setup)
 try:
     client.start()
     client.run_until_disconnected()
 finally:
-    # Close MongoDB client connection (removed since we're not using it)
+    pass  # No need to close anything without MongoDB
