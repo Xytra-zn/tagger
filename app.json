@@ -14,22 +14,17 @@
     "TELEGRAM_API_ID": {
       "description": "Get this value from my.telegram.org/apps.",
       "required": true,
-      "value": "your-telegram-api-id"
+      "value": "25202322"
     },
     "TELEGRAM_API_HASH": {
       "description": "Get this value from my.telegram.org/apps.",
       "required": true,
-      "value": "your-telegram-api-hash"
+      "value": "dcb6c094b027d7305c2c06d2332fd8eb"
     },
     "TELEGRAM_BOT_TOKEN": {
       "description": "The token of your Telegram bot",
       "required": true,
-      "value": "your-bot-token"
-    },
-    "MONGODB_URL": {
-      "description": "Your mLab MongoDB connection URL",
-      "required": true,
-      "value": "your-mlab-mongodb-url"
+      "value": "6810574840:AAFnsZbQ4SbNlROYdC0PwtTi8N9VCXU7FXY"
     }
   }
 }
