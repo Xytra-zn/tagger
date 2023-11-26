@@ -21,7 +21,7 @@
       "required": true,
       "value": "dcb6c094b027d7305c2c06d2332fd8eb"
     },
-    "TELEGRAM_BOT_TOKEN": {
+    "TELEGRAM_TOKEN": {
       "description": "The token of your Telegram bot",
       "required": true,
       "value": "6810574840:AAFnsZbQ4SbNlROYdC0PwtTi8N9VCXU7FXY"
