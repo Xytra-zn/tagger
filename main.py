@@ -1,5 +1,5 @@
 import os
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler
 
 # Track ongoing tagging processes by chat_id
 spam_chats = set()
