@@ -32,7 +32,7 @@ def mention_all(update, context):
     spam_chats.add(chat_id)
 
     # Tag all participants in the chat
-    for member in context.bot.get_chat(chat_id).get_members():
+    for for member in context.bot.get_chat_members(chat_id):
         if member.user:
             username = f"@{member.user.username}" if member.user.username else member.user.first_name
             update.message.reply_text(f"Tagging {username}!")
